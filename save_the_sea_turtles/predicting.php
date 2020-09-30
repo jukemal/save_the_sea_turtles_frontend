@@ -46,9 +46,39 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div>
-                            <b-table striped hover :items="items"></b-table>
-                        </div>
+                        <b-container class="bv-example-row">
+                            <b-row>
+                                <b-col>
+                                    <b-button variant="success" v-on:click="showList = true" class="m-5">Go Back</b-button>
+                                </b-col>
+                            </b-row>
+                            <b-row class="justify-content-center mb-5">
+                                <b-col>
+                                    <b-table-simple hover responsive>
+                                        <b-thead head-variant="dark">
+                                            <b-tr>
+                                                <b-th>Date</b-th>
+                                                <b-th>Count</b-th>
+                                            </b-tr>
+                                        </b-thead>
+                                        <b-tbody>
+                                            <template v-for="(value, name, index) in predicted_values.real">
+                                                <b-tr>
+                                                    <b-td >{{value.date | formatTime}}</b-td>
+                                                    <b-td>{{value.count}}</b-td>
+                                                </b-tr>
+                                            </template>
+                                            <template v-for="(value, name, index) in predicted_values.predicted">
+                                                <b-tr variant="success">
+                                                    <b-td >{{value.date | formatTime}}</b-td>
+                                                    <b-td>{{value.count}}</b-td>
+                                                </b-tr>
+                                            </template>
+                                        </b-tbody>
+                                    </b-table-simple>
+                                </b-col>
+                            </b-row>
+                        </b-container>
                     </template>
                 </template>
                 <template v-else>
@@ -67,6 +97,7 @@
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
         <script src="https://unpkg.com/axios@0.20.0/dist/axios.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.0/moment.min.js" integrity="sha512-Izh34nqeeR7/nwthfeE0SI3c8uhFSnqxV0sI9TvTcXiFJkMd6fB644O64BRq2P/LA/+7eRvCw4GmLsXksyTHBg==" crossorigin="anonymous"></script>
 
         <script>
             new Vue({
@@ -75,12 +106,7 @@
                     loading: true,
                     showList:true,
                     district_list:{},
-                    items: [
-                        { age: 40, first_name: 'Dickerson', last_name: 'Macdonald' },
-                        { age: 21, first_name: 'Larsen', last_name: 'Shaw' },
-                        { age: 89, first_name: 'Geneva', last_name: 'Wilson' },
-                        { age: 38, first_name: 'Jami', last_name: 'Carney' }
-                    ]
+                    predicted_values:{},
                 },
                 mounted:function(){
                     axios
@@ -99,8 +125,23 @@
                 },
                 methods: {
                     showPrediction(id){
-                        console.log(id);
-                    },
+                        this.loading = true;
+
+                        axios
+                        .get(`http://localhost:8000/sea_turtle_count_prediction/${id}/`)
+                        .then(response => {
+                            this.predicted_values = response.data;
+                            console.log(this.predicted_values);
+                        })
+                        .catch(error => {
+                            console.log(error)
+                            this.makeToast()
+                        })
+                        .finally(() => {
+                            this.loading = false;
+                            this.showList=false;
+                        })
+                        },
                     makeToast() {
                         this.toastCount++
                         this.$bvToast.toast(``, {
@@ -111,6 +152,12 @@
                         toaster:'b-toaster-bottom-right'
                         })
                     },
+                },
+                filters: {
+                    formatTime: function (value) {
+                        if (!value) return '';
+                        return moment(value).format("YYYY Qo");
+                    }
                 }
             })
         </script>
