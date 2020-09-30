@@ -26,21 +26,92 @@
                     </b-collapse>
                 </b-navbar>
             </div>
-
+            
+            <transition name="fade">
+                <template v-if="!loading">
+                    <template v-if="showList">
+                        <div class="container m-5">
+                            <h3 class="mb-3">Select district from the list : </h3>
+                            <b-list-group>
+                                <b-list-group-item button 
+                                variant="success"
+                                v-for="district in district_list" 
+                                v-bind:key="district.id" 
+                                v-on:click="showPrediction(district.id)"
+                                >
+                                    <b-icon icon="check" variant="primary"></b-icon>
+                                    {{ district.name }}
+                                </b-list-group-item>
+                            </b-list-group>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div>
+                            <b-table striped hover :items="items"></b-table>
+                        </div>
+                    </template>
+                </template>
+                <template v-else>
+                    <b-row class="text-center" style="height: 800px;" align-v="center">
+                        <b-col>
+                            <b-spinner label="Loading..." variant="warning" ></b-spinner>
+                        </b-col>
+                    </b-row>
+                </template>
+            </transition>
         </div>
 
         <script src="https://unpkg.com/vue@2.6.12/dist/vue.js"></script>
         <script src="https://unpkg.com/bootstrap-vue@2.17.3/dist/bootstrap-vue.min.js"></script>
         <script src="https://unpkg.com/bootstrap-vue@2.17.3/dist/bootstrap-vue-icons.min.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
-        <script src="https://unpkg.com/vue-chartjs@3.5.1/dist/vue-chartjs.min.js"></script>
+        <script src="https://unpkg.com/axios@0.20.0/dist/axios.min.js"></script>
 
         <script>
             new Vue({
-            el: '#app',
-            data: function() {
-                return { visible: false }
-            }
+                el: '#app',
+                data:  {
+                    loading: true,
+                    showList:true,
+                    district_list:{},
+                    items: [
+                        { age: 40, first_name: 'Dickerson', last_name: 'Macdonald' },
+                        { age: 21, first_name: 'Larsen', last_name: 'Shaw' },
+                        { age: 89, first_name: 'Geneva', last_name: 'Wilson' },
+                        { age: 38, first_name: 'Jami', last_name: 'Carney' }
+                    ]
+                },
+                mounted:function(){
+                    axios
+                    .get('http://localhost:8000/districts/')
+                    .then(response => {
+                        this.district_list = response.data.results;
+                    })
+                    .catch(error => {
+                        console.log(error)
+                        this.makeToast()
+                    })
+                    .finally(() => {
+                        this.loading = false;
+                        this.showList=true;
+                    })
+                },
+                methods: {
+                    showPrediction(id){
+                        console.log(id);
+                    },
+                    makeToast() {
+                        this.toastCount++
+                        this.$bvToast.toast(``, {
+                        title: 'Connection Error.',
+                        autoHideDelay: 5000,
+                        variant: variant,
+                        solid: true,
+                        toaster:'b-toaster-bottom-right'
+                        })
+                    },
+                }
             })
         </script>
 
