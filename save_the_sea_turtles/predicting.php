@@ -6,8 +6,9 @@
 
         <title>Predictions - Save the Sea Turtle</title>
 
-        <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap@4.5.2/dist/css/bootstrap.min.css" />
-        <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.17.3/dist/bootstrap-vue.min.css" />
+        <!-- <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap@4.5.2/dist/css/bootstrap.min.css" /> -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.5.2/cyborg/bootstrap.min.css" integrity="sha512-v2h7RYQ8d6LaG0M3OZVeTdtGaNInlFiuOBZVoLja0mY7aLM4FL/mQTGjAjqw9n85rCb3RSwo8DAurMfHHTLTJg==" crossorigin="anonymous" />        
+<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.17.3/dist/bootstrap-vue.min.css" />
 
     </head>
 
@@ -15,7 +16,7 @@
         <div id="app">
             <div>
                 <b-navbar type="dark" variant="info">
-                    <b-navbar-brand href="#">Sea Turtle Count Prediction</b-navbar-brand>
+                    <b-navbar-brand href="./home.php">Sea Turtle Count Prediction</b-navbar-brand>
 
                     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
@@ -30,31 +31,39 @@
             <transition name="fade">
                 <template v-if="!loading">
                     <template v-if="showList">
-                        <div class="container m-5">
-                            <h3 class="mb-3">Select district from the list : </h3>
-                            <b-list-group>
-                                <b-list-group-item button 
-                                variant="success"
-                                v-for="district in district_list" 
-                                v-bind:key="district.id" 
-                                v-on:click="showPrediction(district.id)"
-                                >
-                                    <b-icon icon="check" variant="primary"></b-icon>
-                                    {{ district.name }}
-                                </b-list-group-item>
-                            </b-list-group>
-                        </div>
-                    </template>
-                    <template v-else>
-                        <b-container class="bv-example-row">
-                            <b-row>
+                        <b-container>
+                            <b-row class="justify-content-center">
                                 <b-col>
-                                    <b-button variant="success" v-on:click="showList = true" class="m-5">Go Back</b-button>
+                                    <h3 class="my-4">Select district from the list : </h3>
+                                    <b-list-group>
+                                        <b-list-group-item button
+                                            v-for="district in district_list" 
+                                            v-bind:key="district.id" 
+                                            v-on:click="showPrediction(district.id)"
+                                        >
+                                            <h5>{{ district.name }}</h5>
+                                        </b-list-group-item>
+                                    </b-list-group>
                                 </b-col>
                             </b-row>
-                            <b-row class="justify-content-center mb-5">
+                         </b-container>
+                    </template>
+                    <template v-else>
+                        <b-container>
+                            <b-row>
                                 <b-col>
-                                    <b-table-simple hover responsive>
+                                    <b-button variant="success" v-on:click="goBack" class="my-4">Go Back</b-button>
+                                </b-col>
+                            </b-row>
+                            <b-row>
+                                <h3 class="mb-4">Predictions for {{predicted_values.district.name}}</h3>
+                            </b-row>
+                            <b-row v-if="showChart">
+                                <data-chart :data="predicted_values"></data-chart>
+                            </b-row>
+                            <b-row class="justify-content-center">
+                                <b-col>
+                                    <b-table-simple hover responsive class="mt-3">
                                         <b-thead head-variant="dark">
                                             <b-tr>
                                                 <b-th>Date</b-th>
@@ -78,6 +87,11 @@
                                     </b-table-simple>
                                 </b-col>
                             </b-row>
+                            <b-row>
+                                <b-col>
+                                    <b-button variant="success" v-on:click="goBack" class="mt-3 mb-5">Go Back</b-button>
+                                </b-col>
+                            </b-row>
                         </b-container>
                     </template>
                 </template>
@@ -94,17 +108,83 @@
         <script src="https://unpkg.com/vue@2.6.12/dist/vue.js"></script>
         <script src="https://unpkg.com/bootstrap-vue@2.17.3/dist/bootstrap-vue.min.js"></script>
         <script src="https://unpkg.com/bootstrap-vue@2.17.3/dist/bootstrap-vue-icons.min.js"></script>
-        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
         <script src="https://unpkg.com/axios@0.20.0/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.0/moment.min.js" integrity="sha512-Izh34nqeeR7/nwthfeE0SI3c8uhFSnqxV0sI9TvTcXiFJkMd6fB644O64BRq2P/LA/+7eRvCw4GmLsXksyTHBg==" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
 
         <script>
+            Vue.component('data-chart', {
+                props: ['data'],
+                template: `<canvas id="chart"></canvas>`,
+                mounted:function(){
+
+                    let real=[]
+
+                    for(let key in this.data.real){
+                        let i = this.data.real[key]
+                            
+                        real.push({
+                            "x":i.date,
+                            "y":i.count
+                        })
+                    }
+
+                    let predicted=[]
+
+                    for(let key in this.data.predicted){
+                        let i = this.data.predicted[key]
+                            
+                        predicted.push({
+                            "x":i.date,
+                            "y":i.count
+                        })
+                    }
+
+                    let ctx = document.getElementById('chart');
+                    let myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            datasets: [
+                            {
+                                label: "Real",
+                                backgroundColor:"green",
+                                data: real
+                            },
+                            {
+                                label: "Predicted",
+                                backgroundColor:"red",
+                                data: predicted
+                            }
+                            ]
+                        },
+                        options: {
+                            responsive:true,
+                            scales: {
+                                xAxes: [{
+                                    type: 'time',
+                                    distribution: 'linear',
+                                    time: {
+                                        displayFormats: {
+                                            'quarter': '[Q]Q - YYYY',
+                                        },
+                                        tooltipFormat: "YYYY [Q]Q"
+                                    }
+                                } ]
+                            },
+                            legend: {
+                                display: true,
+                            }
+                        }
+                    });
+                }
+            })
+
             new Vue({
                 el: '#app',
                 data:  {
                     loading: true,
                     showList:true,
+                    showChart:false,
                     district_list:{},
                     predicted_values:{},
                 },
@@ -131,7 +211,7 @@
                         .get(`http://localhost:8000/sea_turtle_count_prediction/${id}/`)
                         .then(response => {
                             this.predicted_values = response.data;
-                            console.log(this.predicted_values);
+                            this.showChart=true;
                         })
                         .catch(error => {
                             console.log(error)
@@ -141,13 +221,17 @@
                             this.loading = false;
                             this.showList=false;
                         })
-                        },
+                    },
+                    goBack(){
+                        this.showList=true
+                        this.showChart=false;
+                    },
                     makeToast() {
                         this.toastCount++
                         this.$bvToast.toast(``, {
                         title: 'Connection Error.',
                         autoHideDelay: 5000,
-                        variant: variant,
+                        variant: "danger",
                         solid: true,
                         toaster:'b-toaster-bottom-right'
                         })
