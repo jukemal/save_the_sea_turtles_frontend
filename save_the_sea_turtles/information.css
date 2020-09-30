@@ -1,0 +1,31 @@
+@charset "utf-8";
+/* CSS Document */
+body{
+background:url("img/turtle4.jpg");
+}
+.span{
+	box-sizing:border-box;
+	/*color:rgb(112,67,34);*/
+	color:#A0A0A0;
+	display:block;
+	float:none;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:12px;
+	height:728.75px;
+	line-height:20px;
+	margin-left:0px;
+	min-height:30px;
+	text-size-adjust:100%;
+	/* width:250px; */
+	text-align:center;
+	position:inherit;
+	}
+	
+	.home_link{
+		font-size:30px;
+		color:#fff;
+		text-decoration:none;
+	}	
+	.home_link:hover{
+		color:white;
+	}
