@@ -6,9 +6,8 @@
 
         <title>Predictions - Save the Sea Turtle</title>
 
-        <!-- <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap@4.5.2/dist/css/bootstrap.min.css" /> -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.5.2/cyborg/bootstrap.min.css" integrity="sha512-v2h7RYQ8d6LaG0M3OZVeTdtGaNInlFiuOBZVoLja0mY7aLM4FL/mQTGjAjqw9n85rCb3RSwo8DAurMfHHTLTJg==" crossorigin="anonymous" />        
-<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.17.3/dist/bootstrap-vue.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.5.2/cyborg/bootstrap.min.css" integrity="sha512-v2h7RYQ8d6LaG0M3OZVeTdtGaNInlFiuOBZVoLja0mY7aLM4FL/mQTGjAjqw9n85rCb3RSwo8DAurMfHHTLTJg==" crossorigin="anonymous" />        
+        <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.17.3/dist/bootstrap-vue.min.css" />
 
     </head>
 
@@ -46,7 +45,7 @@
                                     </b-list-group>
                                 </b-col>
                             </b-row>
-                         </b-container>
+                        </b-container>
                     </template>
                     <template v-else>
                         <b-container>
@@ -118,14 +117,19 @@
                 template: `<canvas id="chart"></canvas>`,
                 mounted:function(){
 
-                    let real=[]
+                    let real=[];
+                    let min=this.data.real[0].count;
+                    let max=this.data.real[0].count;
 
                     for(let key in this.data.real){
                         let i = this.data.real[key]
+
+                        if(i.count<min) min=i.count;
+                        if(i.count>max) max=i.count;
                             
                         real.push({
-                            "x":i.date,
-                            "y":i.count
+                            x:i.date,
+                            y:i.count
                         })
                     }
 
@@ -133,10 +137,13 @@
 
                     for(let key in this.data.predicted){
                         let i = this.data.predicted[key]
+
+                        if(i.count<min) min=i.count;
+                        if(i.count>max) max=i.count;
                             
                         predicted.push({
-                            "x":i.date,
-                            "y":i.count
+                            x:i.date,
+                            y:i.count
                         })
                     }
 
@@ -158,18 +165,26 @@
                             ]
                         },
                         options: {
-                            responsive:true,
                             scales: {
                                 xAxes: [{
                                     type: 'time',
-                                    distribution: 'linear',
+                                    distribution: 'series',
+                                    bounds:"ticks",
+                                    offset: true,
                                     time: {
+                                        unit: 'quarter',
                                         displayFormats: {
-                                            'quarter': '[Q]Q - YYYY',
+                                            'quarter': 'YYYY [Q]Q',
                                         },
                                         tooltipFormat: "YYYY [Q]Q"
                                     }
-                                } ]
+                                } ],
+                                yAxes:[{
+                                    ticks:{
+                                        min:min-3,
+                                        max:max+3
+                                    }
+                                }]
                             },
                             legend: {
                                 display: true,
@@ -227,13 +242,12 @@
                         this.showChart=false;
                     },
                     makeToast() {
-                        this.toastCount++
-                        this.$bvToast.toast(``, {
-                        title: 'Connection Error.',
-                        autoHideDelay: 5000,
-                        variant: "danger",
-                        solid: true,
-                        toaster:'b-toaster-bottom-right'
+                        this.$bvToast.toast(`Error connecting to Server`, {
+                            title: 'Connection Error.',
+                            autoHideDelay: 10000,
+                            variant: "danger",
+                            solid: true,
+                            toaster:'b-toaster-bottom-right'
                         })
                     },
                 },
